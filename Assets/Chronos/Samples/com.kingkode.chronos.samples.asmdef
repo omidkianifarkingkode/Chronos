@@ -1,0 +1,17 @@
+{
+    "name": "com.kingkode.chronos.samples",
+    "rootNamespace": "",
+    "references": [
+        "Unity.TextMeshPro",
+        "com.kingkode.chronos"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
