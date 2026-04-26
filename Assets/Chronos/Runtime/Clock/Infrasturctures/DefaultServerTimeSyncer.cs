@@ -29,6 +29,8 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
 
             var request = UnityWebRequest.Head(url);
 
+            request.certificateHandler = new BypassCertificateHandler();
+
             // Prevent caches
             request.SetRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             request.SetRequestHeader("Pragma", "no-cache");
@@ -88,8 +90,19 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
             }
             finally
             {
+                request.certificateHandler?.Dispose();
                 request.Dispose();
             }
+        }
+    }
+
+    public class BypassCertificateHandler : CertificateHandler
+    {
+        protected override bool ValidateCertificate(byte[] certificateData)
+        {
+            // Always return true to bypass SSL certificate validation errors
+            // caused by wrong local device time.
+            return true;
         }
     }
 }

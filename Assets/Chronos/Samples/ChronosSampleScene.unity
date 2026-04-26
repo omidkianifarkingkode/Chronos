@@ -192,7 +192,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &897610088
 Transform:
   m_ObjectHideFlags: 0
@@ -239,7 +239,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1261205615
 Transform:
   m_ObjectHideFlags: 0
@@ -319,8 +319,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e56691472bbb7b94b884b5270f43e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _schedulerEnable: 1
-  _tinkingEnable: 1
+  _schedulerEnable: 0
+  _tinkingEnable: 0
   OnRegisterServices:
     m_PersistentCalls:
       m_Calls: []
