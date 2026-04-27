@@ -25,7 +25,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
 
         public void Synce(string url, Action<long> callback)
         {
-            _logger.Log(LogType.Log, $"[UnityServerTimeSyncer] Sending HEAD request to: {url}");
+            _logger.Log(LogType.Log, $"[Chronos] [UnityServerTimeSyncer] Sending HEAD request to: {url}");
 
             var request = UnityWebRequest.Head(url);
 
@@ -50,17 +50,17 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
             {
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    _logger.Log(LogType.Error, $"[UnityServerTimeSyncer] Request failed: {request.error}");
+                    _logger.Log(LogType.Error, $"[Chronos] [UnityServerTimeSyncer] Request failed: {request.error}");
                     callback?.Invoke(-1);
                     return;
                 }
 
                 string dateHeader = request.GetResponseHeader("Date");
-                _logger.Log(LogType.Log, $"[UnityServerTimeSyncer] Date header received: {dateHeader}");
+                _logger.Log(LogType.Log, $"[Chronos] [UnityServerTimeSyncer] Date header received: {dateHeader}");
 
                 if (string.IsNullOrEmpty(dateHeader))
                 {
-                    _logger.Log(LogType.Warning, "[UnityServerTimeSyncer] Missing 'Date' header in the response.");
+                    _logger.Log(LogType.Warning, "[Chronos] [UnityServerTimeSyncer] Missing 'Date' header in the response.");
                     callback?.Invoke(-1);
                     return;
                 }
@@ -73,19 +73,19 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
                 {
                     long unixMillis = new DateTimeOffset(serverTime).ToUnixTimeMilliseconds();
 
-                    _logger.Log(LogType.Log, $"[UnityServerTimeSyncer] Parsed server time (UTC): {serverTime:O}");
+                    _logger.Log(LogType.Log, $"[Chronos] [UnityServerTimeSyncer] Parsed server time (UTC): {serverTime:O}");
 
                     callback?.Invoke(unixMillis);
                 }
                 else
                 {
-                    _logger.Log(LogType.Error, $"[UnityServerTimeSyncer] Failed to parse Date header: {dateHeader}");
+                    _logger.Log(LogType.Error, $"[Chronos] [UnityServerTimeSyncer] Failed to parse Date header: {dateHeader}");
                     callback?.Invoke(-1);
                 }
             }
             catch (Exception ex)
             {
-                _logger.Log(LogType.Exception, $"[UnityServerTimeSyncer] Exception while handling response: {ex}");
+                _logger.Log(LogType.Exception, $"[Chronos] [UnityServerTimeSyncer] Exception while handling response: {ex}");
                 callback?.Invoke(-1);
             }
             finally

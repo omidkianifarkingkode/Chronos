@@ -13,7 +13,7 @@ namespace Kingkode.Chronos.Scheduling
 
         public void Handle(Exception ex)
         {
-            _logger.Log(LogType.Error, $"Exception in scheduled action: {ex}");
+            _logger.Log(LogType.Error, $"[Chronos] [Scheduling] Exception in scheduled action: {ex}");
         }
     }
 }

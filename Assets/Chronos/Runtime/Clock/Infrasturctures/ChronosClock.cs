@@ -29,7 +29,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
 
                 _snapshot.lastTrustedLevel = _trustedLevel;
 
-                _logger.Log(LogType.Log, "Trusted level change to : " + _trustedLevel);
+                _logger.Log(LogType.Log, "[Chronos] [Clock] Trusted level change to : " + _trustedLevel);
 
                 TrustedLevelChanged.Invoke(_trustedLevel);
             }
@@ -73,7 +73,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
             var serverTime = DateTimeOffset.FromUnixTimeMilliseconds(serverUnixMs);
             var deviceMs = _dateTimeProvider.UtcNow.ToUnixTimeMilliseconds();
 
-            _logger.Log(LogType.Log, $"Synced with server time:" +
+            _logger.Log(LogType.Log, $"[Chronos] [Clock] Synced with server time:" +
                 $"Server:{serverTime.ToLocalTime():yyyy-MM-dd HH:mm:ss}, " +
                 $"Local:{_dateTimeProvider.Now:yyyy-MM-dd HH:mm:ss}");
 
@@ -122,7 +122,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
 
             if (!hasSnapshot)
             {
-                _logger.Log(LogType.Log, "No valid snapshot found - bootstrapping with device time");
+                _logger.Log(LogType.Log, "[Chronos] [Clock] No valid snapshot found - bootstrapping with device time");
 
                 // bootstrap with device time, but once synced, device time is only diagnostic
                 var deviceMs = _dateTimeProvider.UtcNow.ToUnixTimeMilliseconds();
@@ -195,7 +195,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
             _snapshot.tamperCount++;
             _snapshot.tamper = tamper;
 
-            _logger.Log(LogType.Warning, tamper.Issue);
+            _logger.Log(LogType.Warning, $"[Chronos] [Clock] Tamper detected: {tamper}");
 
             OnTamperDetected.Invoke(tamper);
         }
