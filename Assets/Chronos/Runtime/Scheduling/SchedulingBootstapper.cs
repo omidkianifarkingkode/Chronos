@@ -13,22 +13,40 @@ namespace Kingkode.Chronos.Scheduling
 
         private void Awake()
         {
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener(serivces =>
+            ChronosBootstrapper.Instance.OnRegisterServices.AddListener(services =>
             {
-                serivces.Register(_options);
-                serivces.Register<ActionScheduler>();
-                serivces.RegisterForward<IActionScheduler, ActionScheduler>();
+                services.Register(_options);
+                services.Register<ActionScheduler>();
+                services.RegisterForward<IActionScheduler, ActionScheduler>();
             });
 
             ChronosBootstrapper.Instance.OnServicesInitialized.AddListener(services =>
             {
                 _clock = services.Resolve<IClock>();
                 _scheduler = services.Resolve<ActionScheduler>();
+
+                // Setup default exception handler if enabled
+                if (_options.UseDefaultExceptionHandler)
+                {
+                    var logger = services.Resolve<ILogger>();
+                    var defaultHandler = new DefaultExceptionHandler(logger);
+
+                    _options.ExceptionHandler.AddListener(defaultHandler.Handle);
+                }
             });
+        }
+
+        private void OnDestroy()
+        {
+            _scheduler?.Dispose();
+            _scheduler = null;
         }
 
         private void Update()
         {
+            if (_scheduler == null || _clock == null) 
+                return;
+
             _scheduler.Tick(_clock.UtcNow.ToUnixTimeMilliseconds());
         }
     }

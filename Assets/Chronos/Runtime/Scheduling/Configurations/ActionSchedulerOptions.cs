@@ -17,9 +17,17 @@
         [field: SerializeField] public int InitialPoolCapacity { get; set; } = 64;
 
         /// <summary>
+        /// Whether to use the default exception handler for scheduled actions.
+        /// </summary>
+        [field: SerializeField] public bool UseDefaultExceptionHandler { get; set; } = true;
+
+        /// <summary>
         /// Defines how the scheduler handles exceptions thrown by scheduled Actions.
         /// If null, exceptions might bubble up and interrupt the Tick loop.
         /// </summary>
-        [field: SerializeField] public UnityEvent<Exception> ExceptionHandler { get; set; }
+        [field: SerializeField] public ExceptionEvent ExceptionHandler { get; set; } = new ExceptionEvent();
     }
+
+    [Serializable]
+    public class ExceptionEvent : UnityEvent<Exception> { }
 }

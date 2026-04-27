@@ -29,9 +29,8 @@ namespace Kingkode.Chronos
         [SerializeField] bool _schedulerEnable;
         [SerializeField] bool _tinkingEnable;
 
-        [Header("Events")]
-        public UnityEvent<IServiceRegister> OnRegisterServices;
-        public UnityEvent<IServiceResolver> OnServicesInitialized;
+        [field: SerializeField] public UnityEvent<IServiceRegister> OnRegisterServices { get; private set; }
+        [field: SerializeField] public UnityEvent<IServiceResolver> OnServicesInitialized { get; private set; }
 
         private ServiceContainer _container;
 

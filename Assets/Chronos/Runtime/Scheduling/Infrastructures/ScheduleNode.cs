@@ -9,6 +9,7 @@
     internal class ScheduleNode
     {
         public long Id;
+        public string Tag;
         public long TargetTimeMs;
         public long IntervalMs;
         public Action Callback;
@@ -17,6 +18,7 @@
         public void Clear()
         {
             Id = 0;
+            Tag = null;
             TargetTimeMs = 0;
             IntervalMs = 0;
             Callback = null; // Important: Release the closure reference!
