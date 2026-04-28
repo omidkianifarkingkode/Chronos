@@ -5,7 +5,7 @@ namespace Kingkode.Chronos.Editor
 {
     public static class ChronosModuleMenu
     {
-        private const string MenuPath = "Window/Chrono Module/Create Chronos Bootstrapper";
+        private const string MenuPath = "Window/Chrono/Setup Chronos";
 
         [MenuItem(MenuPath)]
         private static void CreateChronosBootstrapperHierarchy()
