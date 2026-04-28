@@ -19,7 +19,7 @@ namespace Kingkode.Chronos
                     _instance = FindFirstObjectByType<ChronosBootstrapper>();
 
                 if (_instance == null)
-                    _instance = new GameObject(nameof(ChronosBootstrapper)).AddComponent<ChronosBootstrapper>();
+                    _instance = ChronosModuleFactory.GetOrCreateChronosBootstrapper();
 
                 return _instance;
             }
@@ -31,7 +31,7 @@ namespace Kingkode.Chronos
         [SerializeField] private LogType _logLevel = LogType.Log;
 
         [Header("Modules")]
-        [SerializeField] bool _schedulerEnable;
+        [SerializeField] bool _schedulerEnable = true;
         [SerializeField] bool _tickingEnable;
 
         [field: SerializeField] public UnityEvent<IServiceRegister> OnRegisterServices { get; private set; }
@@ -51,6 +51,7 @@ namespace Kingkode.Chronos
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
+            ChronosModuleFactory.EnsureHierarchy(this);
             InitializeModules();
         }
 
@@ -73,14 +74,20 @@ namespace Kingkode.Chronos
                 return;
             }
 
+            ChronosModuleFactory.EnsureHierarchy(this);
             InitializeModules();
         }
 #endif
 
         private void InitializeModules()
         {
-            GetComponentInChildren<SchedulingBootstapper>(true).gameObject.SetActive(_schedulerEnable);
-            GetComponentInChildren<TickingBootStrapper>(true).gameObject.SetActive(_tickingEnable);
+            var scheduler = GetComponentInChildren<SchedulingBootstapper>(true);
+            if (scheduler != null)
+                scheduler.gameObject.SetActive(_schedulerEnable);
+
+            var ticking = GetComponentInChildren<TickingBootstrapper>(true);
+            if (ticking != null)
+                ticking.gameObject.SetActive(_tickingEnable);
         }
 
         private void BuildContainer()

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Kingkode.Chronos.Ticking
 {
-    public class TickingBootStrapper : MonoBehaviour 
+    public class TickingBootstrapper : MonoBehaviour 
     {
         [SerializeField] TickingOptions _options;
         private TickProvider _tickSystem;
