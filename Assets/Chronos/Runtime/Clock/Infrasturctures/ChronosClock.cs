@@ -15,7 +15,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
                 return DateTimeOffset.FromUnixTimeMilliseconds(TrustedUnixMsNow);
             }
         }
-        public DateTimeOffset Now => UtcNow.LocalDateTime;
+        public DateTimeOffset Now => UtcNow.ToLocalTime();
 
         public TrustedLevel TrustedLevel
         {

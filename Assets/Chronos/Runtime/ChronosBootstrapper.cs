@@ -59,7 +59,6 @@ namespace Kingkode.Chronos
             BuildContainer();
         }
 
-
 #if UNITY_EDITOR
         private void OnValidate()
         {

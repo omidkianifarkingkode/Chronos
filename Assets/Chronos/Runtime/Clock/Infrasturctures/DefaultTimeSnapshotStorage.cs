@@ -24,6 +24,7 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
         public void Save(GameClockSnapshot snapshot)
         {
             PlayerPrefs.SetString(StorageKey, JsonUtility.ToJson(snapshot));
+            PlayerPrefs.Save();
         }
 
         public bool TryLoad(out GameClockSnapshot snapshot)
