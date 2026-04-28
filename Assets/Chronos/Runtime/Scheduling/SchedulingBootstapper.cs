@@ -36,6 +36,11 @@ namespace Kingkode.Chronos.Scheduling
             });
         }
 
+        private void OnEnable()
+        {
+            
+        }
+
         private void OnDestroy()
         {
             _scheduler?.Dispose();

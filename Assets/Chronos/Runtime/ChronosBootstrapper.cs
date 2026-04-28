@@ -8,6 +8,7 @@ using UnityEngine.Events;
 
 namespace Kingkode.Chronos
 {
+    [DefaultExecutionOrder(-10000)]
     public sealed class ChronosBootstrapper : MonoBehaviour
     {
         internal static ChronosBootstrapper Instance
@@ -53,10 +54,11 @@ namespace Kingkode.Chronos
             InitializeModules();
         }
 
-        private void OnEnable()
+        private void Start()
         {
             BuildContainer();
         }
+
 
 #if UNITY_EDITOR
         private void OnValidate()

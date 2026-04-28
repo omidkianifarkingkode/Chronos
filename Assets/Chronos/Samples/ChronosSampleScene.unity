@@ -170,7 +170,7 @@ MonoBehaviour:
     <OverlayEnable>k__BackingField: 1
     <SkewThreshold>k__BackingField: 600000
     <DeltaThreshold>k__BackingField: 300000
-    <CheatEnable>k__BackingField: 1
+    <CheatEnable>k__BackingField: 0
   _serverTimeSyncOptions:
     <ServerUrl>k__BackingField: https://google.com
     <SyncOnAppStart>k__BackingField: 1
@@ -323,7 +323,7 @@ MonoBehaviour:
   _logEnabled: 1
   _logLevel: 3
   _schedulerEnable: 1
-  _tinkingEnable: 0
+  _tickingEnable: 0
   <OnRegisterServices>k__BackingField:
     m_PersistentCalls:
       m_Calls: []
