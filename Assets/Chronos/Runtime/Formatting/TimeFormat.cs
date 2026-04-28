@@ -7,13 +7,15 @@ namespace Kingkode.Chronos.Formatting
         public static string HHmmss(this long totalSeconds)
         {
             var sb = StringBuilderPool.Get();
-            var h = totalSeconds / 3600;
-            var m = (totalSeconds % 3600) / 60;
-            var s = totalSeconds % 60;
+            var absSeconds = AppendSignAndGetAbsoluteSeconds(sb, totalSeconds);
 
-            Append2(sb, (int)h); sb.Append(':');
-            Append2(sb, (int)m); sb.Append(':');
-            Append2(sb, (int)s);
+            var h = absSeconds / 3600;
+            var m = (absSeconds % 3600) / 60;
+            var s = absSeconds % 60;
+
+            Append2(sb, h); sb.Append(':');
+            Append2(sb, m); sb.Append(':');
+            Append2(sb, s);
 
             return StringBuilderPool.ToStringAndRelease(sb);
         }
@@ -21,11 +23,13 @@ namespace Kingkode.Chronos.Formatting
         public static string MMss(this long totalSeconds)
         {
             var sb = StringBuilderPool.Get();
-            var m = totalSeconds / 60;
-            var s = totalSeconds % 60;
+            var absSeconds = AppendSignAndGetAbsoluteSeconds(sb, totalSeconds);
 
-            Append2(sb, (int)m); sb.Append(':');
-            Append2(sb, (int)s);
+            var m = absSeconds / 60;
+            var s = absSeconds % 60;
+
+            Append2(sb, m); sb.Append(':');
+            Append2(sb, s);
 
             return StringBuilderPool.ToStringAndRelease(sb);
         }
@@ -33,29 +37,51 @@ namespace Kingkode.Chronos.Formatting
         public static string Compact(this long totalSeconds)
         {
             var sb = StringBuilderPool.Get();
+            var absSeconds = AppendSignAndGetAbsoluteSeconds(sb, totalSeconds);
+            var hasUnit = false;
 
-            var days = totalSeconds / 86400; totalSeconds %= 86400;
-            var hours = totalSeconds / 3600; totalSeconds %= 3600;
-            var mins = totalSeconds / 60;
-            var secs = totalSeconds % 60;
+            var days = absSeconds / 86400; absSeconds %= 86400;
+            var hours = absSeconds / 3600; absSeconds %= 3600;
+            var mins = absSeconds / 60;
+            var secs = absSeconds % 60;
 
-            if (days > 0) { sb.Append(days).Append("d "); }
-            if (hours > 0) { sb.Append(hours).Append("h "); }
-            if (mins > 0) { sb.Append(mins).Append("m "); }
-            if (secs > 0 || sb.Length == 0) { sb.Append(secs).Append("s"); }
+            if (days > 0) { sb.Append(days).Append("d "); hasUnit = true; }
+            if (hours > 0) { sb.Append(hours).Append("h "); hasUnit = true; }
+            if (mins > 0) { sb.Append(mins).Append("m "); hasUnit = true; }
+            if (secs > 0 || !hasUnit) { sb.Append(secs).Append("s"); }
 
             return StringBuilderPool.ToStringAndRelease(sb);
         }
 
         public static string LargestUnit(this long totalSeconds)
         {
-            if (totalSeconds >= 86400) return (totalSeconds / 86400) + "d";
-            if (totalSeconds >= 3600) return (totalSeconds / 3600) + "h";
-            if (totalSeconds >= 60) return (totalSeconds / 60) + "m";
-            return totalSeconds + "s";
+            var isNegative = totalSeconds < 0;
+            var absSeconds = ToAbsoluteSeconds(totalSeconds);
+
+            string value;
+            if (absSeconds >= 86400) value = (absSeconds / 86400) + "d";
+            else if (absSeconds >= 3600) value = (absSeconds / 3600) + "h";
+            else if (absSeconds >= 60) value = (absSeconds / 60) + "m";
+            else value = absSeconds + "s";
+
+            return isNegative ? "-" + value : value;
         }
 
-        private static void Append2(StringBuilder sb, int v)
+        private static ulong AppendSignAndGetAbsoluteSeconds(StringBuilder sb, long totalSeconds)
+        {
+            if (totalSeconds < 0)
+                sb.Append('-');
+
+            return ToAbsoluteSeconds(totalSeconds);
+        }
+
+        private static ulong ToAbsoluteSeconds(long totalSeconds)
+        {
+            // Handles long.MinValue safely without overflow.
+            return totalSeconds < 0 ? (ulong)(-(totalSeconds + 1)) + 1UL : (ulong)totalSeconds;
+        }
+
+        private static void Append2(StringBuilder sb, ulong v)
         {
             if (v < 10) sb.Append('0');
             sb.Append(v);
