@@ -51,6 +51,10 @@ namespace Kingkode.Chronos
             DontDestroyOnLoad(gameObject);
 
             InitializeModules();
+        }
+
+        private void OnEnable()
+        {
             BuildContainer();
         }
 
