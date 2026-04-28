@@ -31,7 +31,7 @@ namespace Kingkode.Chronos
 
         [Header("Modules")]
         [SerializeField] bool _schedulerEnable;
-        [SerializeField] bool _tinkingEnable;
+        [SerializeField] bool _tickingEnable;
 
         [field: SerializeField] public UnityEvent<IServiceRegister> OnRegisterServices { get; private set; }
         [field: SerializeField] public UnityEvent<IServiceResolver> OnServicesInitialized { get; private set; }
@@ -75,7 +75,7 @@ namespace Kingkode.Chronos
         private void InitializeModules()
         {
             GetComponentInChildren<SchedulingBootstapper>(true).gameObject.SetActive(_schedulerEnable);
-            GetComponentInChildren<TickingBootStrapper>(true).gameObject.SetActive(_tinkingEnable);
+            GetComponentInChildren<TickingBootStrapper>(true).gameObject.SetActive(_tickingEnable);
         }
 
         private void BuildContainer()
