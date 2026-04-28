@@ -24,6 +24,17 @@ After installation, create the required bootstrapper hierarchy from:
 
 This menu item creates (or finds) the Chronos bootstrapper and wires available modules so `Chronos.Clock`, `Chronos.Scheduler`, and `Chronos.TickProvider` are initialized at runtime.
 
+
+## Samples
+
+Chronos package samples are now stored in `Samples~/Sample` to match Unity package sample conventions.
+
+To import the sample into your project:
+
+1. Open **Window → Package Manager**.
+2. Select **Chronos** from the package list.
+3. In the **Samples** tab, click **Import** for **Sample**.
+
 ## Modules
 
 ### Clock
