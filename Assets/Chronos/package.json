@@ -10,6 +10,5 @@
   "description": "Provides task scheduling and time functionalities.",
   "keywords": [],
   "dependencies": {
-    "com.kingkode.mini-di": "https://github.com/omidkianifarkingkode/MiniDI.git?path=Assets/MiniDI#1.0.1"
   }
 }
