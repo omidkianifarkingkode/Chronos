@@ -7,8 +7,8 @@ namespace Kingkode.Chronos.Clock.Cheats
 {
     public class CheatGameClockDebugOverlay : MonoBehaviour
     {
-        [SerializeField] Rect showRect = new(0, 25, 450, 360);
-        [SerializeField] Rect hideRect = new(0, 25, 30, 22);
+        [SerializeField] Rect showRect = new(50, 160, 1350, 620);
+        [SerializeField] Rect hideRect = new(0, 165, 350, 500);
         [SerializeField] bool showClock = true;
 
         private GameClockCheat _cheat;
@@ -57,10 +57,13 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             showClock = true;
 
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 26;
+
             // Background semi-transparent box
             GUILayout.BeginArea(showRect);
             GUI.Box(new Rect(0, 0, showRect.width, showRect.height), "");
-            if (GUILayout.Button("<<"))
+            if (GUILayout.Button("<<", buttonStyle, GUILayout.Height(50)))
             {
                 Hide();
             }
@@ -77,15 +80,18 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.Label($"{_serverDateTimeProvider.UtcNow:T} ({_serverDateTimeProvider.Now:T}) - Server Date Time", _style);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 M"))
+            
+
+
+            if (GUILayout.Button("+1 M", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatServerDateTime(1);
             }
-            if (GUILayout.Button("-1 M"))
+            if (GUILayout.Button("-1 M", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatServerDateTime(-1);
             }
-            if (GUILayout.Button("Reset"))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.ResetServerDateTime();
             }
@@ -94,15 +100,15 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.Label($"{_dateTimeProvider.UtcNow:T} ({_dateTimeProvider.Now:T}) - Local Date Time", _style);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H"))
+            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatLocalDateTime(1);
             }
-            if (GUILayout.Button("-1 H"))
+            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatLocalDateTime(-1);
             }
-            if (GUILayout.Button("Reset"))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.ResetLocalDateTime();
             }
@@ -113,15 +119,15 @@ namespace Kingkode.Chronos.Clock.Cheats
             GUILayout.Label($"Real Ticks: {_realSystemTickProvider.GetTimestamp() / 10000000L}", _style);
             GUILayout.Label($"Fake Ticks: {_systemTickProvider.GetTimestamp() / 10000000L}", _style);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H"))
+            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatSystemTick(10000L * 1000 * 60 * 60);
             }
-            if (GUILayout.Button("-1 H"))
+            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.CheatSystemTick(-10000L * 1000 * 60 * 60);
             }
-            if (GUILayout.Button("Reset"))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.ResetSystemTick();
             }
@@ -135,15 +141,15 @@ namespace Kingkode.Chronos.Clock.Cheats
             GUILayout.Label($"Tamper Detected: {suspiciousText}", _style);
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Sync"))
+            if (GUILayout.Button("Sync", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.SynceWithServer();
             }
-            if (GUILayout.Button("Save"))
+            if (GUILayout.Button("Save", buttonStyle, GUILayout.Height(50)))
             {
                 _clock.CheckClockJumping();
             }
-            if (GUILayout.Button("Clear Cache"))
+            if (GUILayout.Button("Clear Cache", buttonStyle, GUILayout.Height(50)))
             {
                 _cheat.ClearCache();
             }
@@ -159,7 +165,7 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.BeginArea(hideRect);
 
-            if (GUILayout.Button(">>"))
+            if (GUILayout.Button(">>", GUILayout.Height(75)))
             {
                 Show();
             }
@@ -174,7 +180,7 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             _style = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 15,
+                fontSize = 32,
                 normal = { textColor = Color.yellow },
                 padding = new RectOffset(10, 10, 8, 8),
                 alignment = TextAnchor.UpperLeft
