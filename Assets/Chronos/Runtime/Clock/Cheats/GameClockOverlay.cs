@@ -7,7 +7,7 @@ namespace Kingkode.Chronos.Clock.Cheats
     {
         [Header("UI Settings")]
         // Draggable rect for the permanent display
-        [SerializeField] Rect displayRect = new(0, 0, 130, 25); // Increased size for better borders/padding
+        [SerializeField] Rect displayRect = new(75, 50, 345, 100); // Increased size for better borders/padding
 
         // Drag state
         private bool dragging = false;
@@ -72,6 +72,8 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             int trust = (int)clock.TrustedLevel;
             GUIStyle style = trustedStyles[trust];
+
+            style.fontSize = 24;
 
             Event e = Event.current;
 
