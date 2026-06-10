@@ -6,13 +6,17 @@ namespace Kingkode.Chronos.Scheduling
 {
     public class SchedulingBootstapper : MonoBehaviour
     {
-        [SerializeField] ActionSchedulerOptions _options;
+        private ActionSchedulerOptions _options;
 
         private ActionScheduler _scheduler;
         private IClock _clock;
 
         private void Awake()
         {
+            // Configuration comes from the ChronosSettings asset; nothing is serialized
+            // on this component, so consumers configure the module without editing the package.
+            _options = ChronosBootstrapper.Instance.Settings.Scheduler;
+
             ChronosBootstrapper.Instance.OnRegisterServices.AddListener(services =>
             {
                 services.Register(_options);

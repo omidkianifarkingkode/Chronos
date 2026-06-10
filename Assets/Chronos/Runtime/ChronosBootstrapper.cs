@@ -26,16 +26,28 @@ namespace Kingkode.Chronos
         }
         private static ChronosBootstrapper _instance;
 
-        [Header("Logging")]
-        [SerializeField] bool _logEnabled = true;
-        [SerializeField] private LogType _logLevel = LogType.Log;
-
-        [Header("Modules")]
-        [SerializeField] bool _schedulerEnable = true;
-        [SerializeField] bool _tickingEnable;
+        [Header("Configuration")]
+        [Tooltip("Optional explicit settings asset. When empty, Chronos loads '" + ChronosSettings.ResourcesFileName + "' from any Resources folder and falls back to the package defaults.")]
+        [SerializeField] private ChronosSettings _settings;
 
         [field: SerializeField] public UnityEvent<IServiceRegister> OnRegisterServices { get; private set; }
         [field: SerializeField] public UnityEvent<IServiceResolver> OnServicesInitialized { get; private set; }
+
+        /// <summary>
+        /// Resolved configuration: explicit asset > "ChronosSettings" in Resources > package defaults.
+        /// Never null.
+        /// </summary>
+        public ChronosSettings Settings
+        {
+            get
+            {
+                if (_resolvedSettings == null)
+                    _resolvedSettings = ChronosSettings.Resolve(_settings);
+
+                return _resolvedSettings;
+            }
+        }
+        private ChronosSettings _resolvedSettings;
 
         private ServiceContainer _container;
         private ILogger _chronosLogger;
@@ -63,12 +75,15 @@ namespace Kingkode.Chronos
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            // Re-resolve when the explicit settings reference changes in the inspector.
+            _resolvedSettings = null;
+
             if (Application.isPlaying)
             {
                 if (_chronosLogger != null)
                 {
-                    _chronosLogger.logEnabled = _logEnabled;
-                    _chronosLogger.filterLogType = _logLevel;
+                    _chronosLogger.logEnabled = Settings.LogEnabled;
+                    _chronosLogger.filterLogType = Settings.LogLevel;
                 }
 
                 return;
@@ -83,19 +98,19 @@ namespace Kingkode.Chronos
         {
             var scheduler = GetComponentInChildren<SchedulingBootstapper>(true);
             if (scheduler != null)
-                scheduler.gameObject.SetActive(_schedulerEnable);
+                scheduler.gameObject.SetActive(Settings.SchedulerEnable);
 
             var ticking = GetComponentInChildren<TickingBootstrapper>(true);
             if (ticking != null)
-                ticking.gameObject.SetActive(_tickingEnable);
+                ticking.gameObject.SetActive(Settings.TickingEnable);
         }
 
         private void BuildContainer()
         {
             _chronosLogger = new Logger(Debug.unityLogger.logHandler)
             {
-                logEnabled = _logEnabled,
-                filterLogType = _logLevel
+                logEnabled = Settings.LogEnabled,
+                filterLogType = Settings.LogLevel
             };
 
             // The new Microsoft-style Builder pattern
@@ -105,6 +120,7 @@ namespace Kingkode.Chronos
                 .ConfigureServices(services =>
                 {
                     services.Register<ILogger>(_chronosLogger);
+                    services.Register(Settings);
 
                     // Allow external modules to register their dependencies
                     OnRegisterServices?.Invoke(services);

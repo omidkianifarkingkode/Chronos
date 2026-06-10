@@ -7,11 +7,15 @@ namespace Kingkode.Chronos.Ticking
 {
     public class TickingBootstrapper : MonoBehaviour 
     {
-        [SerializeField] TickingOptions _options;
+        private TickingOptions _options;
         private TickProvider _tickSystem;
 
         private void Awake()
         {
+            // Configuration comes from the ChronosSettings asset; nothing is serialized
+            // on this component, so consumers configure the module without editing the package.
+            _options = ChronosBootstrapper.Instance.Settings.Ticking;
+
             ChronosBootstrapper.Instance.OnRegisterServices.AddListener((services) =>
             {
                 services.Register(_options);

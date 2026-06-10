@@ -10,14 +10,20 @@ namespace Kingkode.Chronos.Clock
     {
         private bool _isStarted = false;
 
-        [SerializeField] GameClockOptions _clockOptions;
-        [SerializeField] ServerTimeSyncOptions _serverTimeSyncOptions;
+        private GameClockOptions _clockOptions;
+        private ServerTimeSyncOptions _serverTimeSyncOptions;
 
         private IServerTimeSyncer _serverTimeSyncer;
         private IClock _clock;
 
         private void Awake()
         {
+            // All configuration comes from the ChronosSettings asset; nothing is serialized
+            // on this component, so consumers configure the module without editing the package.
+            var settings = ChronosBootstrapper.Instance.Settings;
+            _clockOptions = settings.Clock;
+            _serverTimeSyncOptions = settings.ServerTimeSync;
+
             ChronosBootstrapper.Instance.OnRegisterServices.AddListener(services =>
             {
                 services.Register(_clockOptions);
