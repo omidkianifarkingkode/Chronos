@@ -1,4 +1,4 @@
-﻿using Kingkode.Chronos.Clock.Configurations;
+using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Infrasturctures;
 using Kingkode.Chronos.Clock.Persistences;
 using Kingkode.Chronos.Clock.Services;
@@ -25,7 +25,14 @@ namespace Kingkode.Chronos.Clock.Cheats
         private DefaultDateTimeProvider _realDateTimeProvider;
         private DefaultSystemTickProvider _realSystemTickProvider;
 
-        private GUIStyle _style;
+        private GUIStyle _panelStyle;
+        private GUIStyle _cardStyle;
+        private GUIStyle _titleStyle;
+        private GUIStyle _sectionStyle;
+        private GUIStyle _labelStyle;
+        private GUIStyle _buttonStyle;
+        private GUIStyle _accentButtonStyle;
+
         private Tamper _tamper;
 
         private void Awake()
@@ -55,7 +62,7 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             if (_clock == null) return;
 
-            CreateStyle();
+            CreateStyles();
 
             if (showClock) Show();
             else Hide();
@@ -65,105 +72,63 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             showClock = true;
 
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
-            buttonStyle.fontSize = _options.ButtonFontSize;
+            GUI.Box(showRect, GUIContent.none, _panelStyle);
 
-            // Background semi-transparent box
-            GUILayout.BeginArea(showRect);
-            GUI.Box(new Rect(0, 0, showRect.width, showRect.height), "");
-            if (GUILayout.Button("<<", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                Hide();
-            }
+            var inner = new Rect(showRect.x + 16, showRect.y + 12, showRect.width - 32, showRect.height - 24);
+            GUILayout.BeginArea(inner);
 
-            GUILayout.BeginVertical();
+            DrawHeader();
 
-            GUILayout.Label($"{_realDateTimeProvider.UtcNow:T} ({_realDateTimeProvider.Now:T}) - Real Date Time", _style);
+            // ── Real device time ──────────────────────────────────────
+            BeginCard("REAL TIME");
+            GUILayout.Label($"{_realDateTimeProvider.UtcNow:T}  <color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.TextDim)}>({_realDateTimeProvider.Now:T} local)</color>", _labelStyle);
+            EndCard();
 
-            string color =
-                _clock.TrustedLevel == TrustedLevel.Weak ? "red" :
-                _clock.TrustedLevel == TrustedLevel.Medium ? "yellow" :
-                _clock.TrustedLevel == TrustedLevel.Strong ? "green" : "gray";
-            //GUILayout.Label($"{_services.Clock.UtcNow:T} ({_services.Clock.Now:T}) - Game Date Time (Trusted:<color={color}>{_services.Clock.TrustedLevel}</color>)", _style);
-
-            GUILayout.Label($"{_serverDateTimeProvider.UtcNow:T} ({_serverDateTimeProvider.Now:T}) - Server Date Time", _style);
+            // ── Server time cheat ─────────────────────────────────────
+            BeginCard("SERVER TIME");
+            GUILayout.Label($"{_serverDateTimeProvider.UtcNow:T}  <color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.TextDim)}>({_serverDateTimeProvider.Now:T} local)</color>", _labelStyle);
             GUILayout.BeginHorizontal();
-            
-
-
-            if (GUILayout.Button("+1 M", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatServerDateTime(1);
-            }
-            if (GUILayout.Button("-1 M", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatServerDateTime(-1);
-            }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.ResetServerDateTime();
-            }
-
+            if (CheatButton("+1 Min")) _cheat.CheatServerDateTime(1);
+            if (CheatButton("-1 Min")) _cheat.CheatServerDateTime(-1);
+            if (CheatButton("Reset")) _cheat.ResetServerDateTime();
             GUILayout.EndHorizontal();
+            EndCard();
 
-            GUILayout.Label($"{_dateTimeProvider.UtcNow:T} ({_dateTimeProvider.Now:T}) - Local Date Time", _style);
+            // ── Local time cheat ──────────────────────────────────────
+            BeginCard("LOCAL TIME");
+            GUILayout.Label($"{_dateTimeProvider.UtcNow:T}  <color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.TextDim)}>({_dateTimeProvider.Now:T} local)</color>", _labelStyle);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatLocalDateTime(1);
-            }
-            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatLocalDateTime(-1);
-            }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.ResetLocalDateTime();
-            }
-
+            if (CheatButton("+1 Hour")) _cheat.CheatLocalDateTime(1);
+            if (CheatButton("-1 Hour")) _cheat.CheatLocalDateTime(-1);
+            if (CheatButton("Reset")) _cheat.ResetLocalDateTime();
             GUILayout.EndHorizontal();
+            EndCard();
 
+            // ── System tick cheat ─────────────────────────────────────
+            BeginCard("SYSTEM TICKS");
             // Unix seconds
-            GUILayout.Label($"Real Ticks: {_realSystemTickProvider.GetTimestamp() / 10000000L}", _style);
-            GUILayout.Label($"Fake Ticks: {_systemTickProvider.GetTimestamp() / 10000000L}", _style);
+            GUILayout.Label($"Real: {_realSystemTickProvider.GetTimestamp() / 10000000L}    <color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.Accent)}>Fake: {_systemTickProvider.GetTimestamp() / 10000000L}</color>", _labelStyle);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatSystemTick(10000L * 1000 * 60 * 60);
-            }
-            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.CheatSystemTick(-10000L * 1000 * 60 * 60);
-            }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.ResetSystemTick();
-            }
+            if (CheatButton("+1 Hour")) _cheat.CheatSystemTick(10000L * 1000 * 60 * 60);
+            if (CheatButton("-1 Hour")) _cheat.CheatSystemTick(-10000L * 1000 * 60 * 60);
+            if (CheatButton("Reset")) _cheat.ResetSystemTick();
             GUILayout.EndHorizontal();
+            EndCard();
 
-            // Suspicious flag
-            string suspiciousText = _tamper == null ?
-                "<color=green>No Tamper</color>" :
-                $"<color=red>{_tamper.Issue}</color>";
-
-            GUILayout.Label($"Tamper Detected: {suspiciousText}", _style);
-
+            // ── Integrity ─────────────────────────────────────────────
+            BeginCard("INTEGRITY");
+            string trustHex = ChronosGuiTheme.ToHex(ChronosGuiTheme.TrustColor(_clock.TrustedLevel));
+            string tamperText = _tamper == null
+                ? $"<color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.StrongColor)}>No Tamper</color>"
+                : $"<color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.WeakColor)}>{_tamper.Issue}</color>";
+            GUILayout.Label($"Trust: <color=#{trustHex}>{_clock.TrustedLevel}</color>    Tamper: {tamperText}", _labelStyle);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Sync", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.SynceWithServer();
-            }
-            if (GUILayout.Button("Save", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _clock.CheckClockJumping();
-            }
-            if (GUILayout.Button("Clear Cache", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
-            {
-                _cheat.ClearCache();
-            }
+            if (GUILayout.Button("Sync", _accentButtonStyle, GUILayout.Height(_options.ButtonHeight))) _cheat.SynceWithServer();
+            if (CheatButton("Save")) _clock.CheckClockJumping();
+            if (CheatButton("Clear Cache")) _cheat.ClearCache();
             GUILayout.EndHorizontal();
+            EndCard();
 
-            GUILayout.EndVertical();
             GUILayout.EndArea();
         }
 
@@ -173,7 +138,7 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.BeginArea(hideRect);
 
-            if (GUILayout.Button(">>", GUILayout.Height(_options.ExpandButtonHeight)))
+            if (GUILayout.Button("» Time Cheats", _accentButtonStyle, GUILayout.Height(_options.ExpandButtonHeight)))
             {
                 Show();
             }
@@ -181,18 +146,49 @@ namespace Kingkode.Chronos.Clock.Cheats
             GUILayout.EndArea();
         }
 
-        private void CreateStyle()
+        // ─── Layout helpers ───────────────────────────────────────────
+
+        private void DrawHeader()
         {
-            if (_style != null)
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"<color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.Accent)}>CHRONOS</color>  ·  TIME CHEATS", _titleStyle);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("«", _buttonStyle, GUILayout.Width(_options.ButtonHeight * 2), GUILayout.Height(_options.ButtonHeight)))
+            {
+                Hide();
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(4);
+        }
+
+        private void BeginCard(string title)
+        {
+            GUILayout.BeginVertical(_cardStyle);
+            GUILayout.Label(title, _sectionStyle);
+        }
+
+        private void EndCard()
+        {
+            GUILayout.EndVertical();
+        }
+
+        private bool CheatButton(string text)
+        {
+            return GUILayout.Button(text, _buttonStyle, GUILayout.Height(_options.ButtonHeight));
+        }
+
+        private void CreateStyles()
+        {
+            if (_panelStyle != null)
                 return;
 
-            _style = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = _options.LabelFontSize,
-                normal = { textColor = Color.yellow },
-                padding = new RectOffset(10, 10, 8, 8),
-                alignment = TextAnchor.UpperLeft
-            };
+            _panelStyle = ChronosGuiTheme.MakePanel(14);
+            _cardStyle = ChronosGuiTheme.MakeCard(10);
+            _titleStyle = ChronosGuiTheme.MakeLabel(_options.LabelFontSize, ChronosGuiTheme.TextPrimary, bold: true);
+            _sectionStyle = ChronosGuiTheme.MakeLabel(Mathf.Max(12, (int)(_options.LabelFontSize * 0.55f)), ChronosGuiTheme.TextDim, bold: true);
+            _labelStyle = ChronosGuiTheme.MakeLabel(_options.LabelFontSize, ChronosGuiTheme.TextPrimary);
+            _buttonStyle = ChronosGuiTheme.MakeButton(_options.ButtonFontSize);
+            _accentButtonStyle = ChronosGuiTheme.MakeAccentButton(_options.ButtonFontSize);
         }
     }
 }

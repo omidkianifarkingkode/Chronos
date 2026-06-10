@@ -1,4 +1,4 @@
-﻿using Kingkode.Chronos.Clock.Configurations;
+using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
@@ -17,7 +17,8 @@ namespace Kingkode.Chronos.Clock.Cheats
         private bool dragging = false;
         private Vector2 dragOffset;
 
-        private GUIStyle[] trustedStyles;
+        private GUIStyle _panelStyle;
+        private GUIStyle _timeStyle;
         private IClock clock;
 
         private void Awake()
@@ -33,36 +34,11 @@ namespace Kingkode.Chronos.Clock.Cheats
 
         private void CreateStyles()
         {
-            if (trustedStyles != null)
+            if (_panelStyle != null)
                 return;
 
-            Color getColor(int i) => i switch
-            {
-                3 => new Color(0.3f, 0.7f, 0.3f), // Strong
-                2 => new Color(0.8f, 0.7f, 0.2f), // Medium
-                1 => new Color(0.8f, 0.2f, 0.2f), // Weak
-                _ => new Color(0.5f, 0.5f, 0.5f)  // Unknown
-            };
-
-            trustedStyles = new GUIStyle[4];
-
-            for (int i = 0; i < trustedStyles.Length; i++)
-            {
-                // Create a new style based on GUI.skin.box to easily get a border/background
-                trustedStyles[i] = new GUIStyle(GUI.skin.box)
-                {
-                    fontSize = _options.FontSize,
-                    alignment = TextAnchor.MiddleCenter,
-                    // Adjust padding to look good with the border
-                    padding = new RectOffset(10, 10, 5, 5),
-
-                    // Set the text color
-                    normal = { textColor = getColor(i) },
-                    fontStyle = FontStyle.Bold
-                    // You can further customize the border appearance here if needed
-                    // For example, by setting border widths, but GUI.skin.box provides a default look.
-                };
-            }
+            _panelStyle = ChronosGuiTheme.MakePanel(12);
+            _timeStyle = ChronosGuiTheme.MakeLabel(_options.FontSize, ChronosGuiTheme.TextPrimary, bold: true);
         }
 
         private void OnGUI()
@@ -71,18 +47,34 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             CreateStyles();
 
-            // Draw the permanent, draggable label with a border
-            DrawDraggableLabel(ref displayRect, clock.Now.ToString(_options.TimeFormat));
+            HandleDragging(ref displayRect);
+            DrawClockPanel(displayRect, clock.Now.ToString(_options.TimeFormat));
         }
 
-        private void DrawDraggableLabel(ref Rect rect, string text)
+        private void DrawClockPanel(Rect rect, string text)
         {
-            int trust = (int)clock.TrustedLevel;
-            GUIStyle style = trustedStyles[trust];
+            Color trustColor = ChronosGuiTheme.TrustColor(clock.TrustedLevel);
 
+            // Panel background
+            GUI.Box(rect, GUIContent.none, _panelStyle);
+
+            // Trust-level dot, vertically centered on the left
+            float dotSize = Mathf.Clamp(rect.height * 0.22f, 10f, 18f);
+            var dotRect = new Rect(rect.x + 14, rect.y + (rect.height - dotSize) * 0.5f, dotSize, dotSize);
+            GUI.DrawTexture(dotRect, ChronosGuiTheme.Rounded(trustColor, (int)(dotSize * 0.5f)));
+
+            // Time text
+            float textX = dotRect.xMax + 10;
+            GUI.Label(new Rect(textX, rect.y, rect.xMax - textX - 8, rect.height - 4), text, _timeStyle);
+
+            // Thin trust strip along the bottom edge
+            GUI.DrawTexture(new Rect(rect.x + 10, rect.yMax - 5, rect.width - 20, 3), ChronosGuiTheme.Solid(trustColor));
+        }
+
+        private void HandleDragging(ref Rect rect)
+        {
             Event e = Event.current;
 
-            // --- Dragging Logic ---
             // Detect start drag
             if (_options.Draggable && e.type == EventType.MouseDown && rect.Contains(e.mousePosition))
             {
@@ -102,11 +94,6 @@ namespace Kingkode.Chronos.Clock.Cheats
             // Stop drag
             if (e.type == EventType.MouseUp)
                 dragging = false;
-            // ----------------------
-
-
-            // Draw the label with the border style
-            GUI.Label(rect, text, style);
         }
     }
 }
