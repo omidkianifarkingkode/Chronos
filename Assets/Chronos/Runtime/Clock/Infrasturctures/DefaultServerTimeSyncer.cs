@@ -29,7 +29,11 @@ namespace Kingkode.Chronos.Clock.Infrasturctures
 
             var request = UnityWebRequest.Head(url);
 
-            request.certificateHandler = new BypassCertificateHandler();
+            if (_options.TimeoutSeconds > 0)
+                request.timeout = _options.TimeoutSeconds;
+
+            if (_options.BypassCertificateValidation)
+                request.certificateHandler = new BypassCertificateHandler();
 
             // Prevent caches
             request.SetRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");

@@ -34,6 +34,8 @@ namespace Kingkode.Chronos
         [field: Header("Clock")]
         [field: SerializeField] public GameClockOptions Clock { get; set; } = new GameClockOptions();
         [field: SerializeField] public ServerTimeSyncOptions ServerTimeSync { get; set; } = new ServerTimeSyncOptions();
+        [field: SerializeField] public ClockOverlayOptions ClockOverlay { get; set; } = new ClockOverlayOptions();
+        [field: SerializeField] public ClockCheatOverlayOptions ClockCheatOverlay { get; set; } = new ClockCheatOverlayOptions();
 
         [field: Header("Scheduling")]
         [field: SerializeField] public ActionSchedulerOptions Scheduler { get; set; } = new ActionSchedulerOptions();

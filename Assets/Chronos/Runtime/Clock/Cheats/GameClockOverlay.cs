@@ -1,13 +1,17 @@
-﻿using Kingkode.Chronos.Clock.Services;
+﻿using Kingkode.Chronos.Clock.Configurations;
+using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
 namespace Kingkode.Chronos.Clock.Cheats
 {
     public class GameClockOverlay : MonoBehaviour
     {
-        [Header("UI Settings")]
+        // Configured via ChronosSettings (this component is added at runtime, so the
+        // settings asset is the only way consumers can adjust it).
+        private ClockOverlayOptions _options;
+
         // Draggable rect for the permanent display
-        [SerializeField] Rect displayRect = new(75, 50, 345, 100); // Increased size for better borders/padding
+        private Rect displayRect;
 
         // Drag state
         private bool dragging = false;
@@ -18,6 +22,9 @@ namespace Kingkode.Chronos.Clock.Cheats
 
         private void Awake()
         {
+            _options = ChronosBootstrapper.Instance.Settings.ClockOverlay;
+            displayRect = _options.DisplayRect;
+
             ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
             {
                 clock = services.Resolve<IClock>();
@@ -44,7 +51,7 @@ namespace Kingkode.Chronos.Clock.Cheats
                 // Create a new style based on GUI.skin.box to easily get a border/background
                 trustedStyles[i] = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 12,
+                    fontSize = _options.FontSize,
                     alignment = TextAnchor.MiddleCenter,
                     // Adjust padding to look good with the border
                     padding = new RectOffset(10, 10, 5, 5),
@@ -65,7 +72,7 @@ namespace Kingkode.Chronos.Clock.Cheats
             CreateStyles();
 
             // Draw the permanent, draggable label with a border
-            DrawDraggableLabel(ref displayRect, clock.Now.ToString("yy-MM-dd HH:mm:ss"));
+            DrawDraggableLabel(ref displayRect, clock.Now.ToString(_options.TimeFormat));
         }
 
         private void DrawDraggableLabel(ref Rect rect, string text)
@@ -73,13 +80,11 @@ namespace Kingkode.Chronos.Clock.Cheats
             int trust = (int)clock.TrustedLevel;
             GUIStyle style = trustedStyles[trust];
 
-            style.fontSize = 24;
-
             Event e = Event.current;
 
             // --- Dragging Logic ---
             // Detect start drag
-            if (e.type == EventType.MouseDown && rect.Contains(e.mousePosition))
+            if (_options.Draggable && e.type == EventType.MouseDown && rect.Contains(e.mousePosition))
             {
                 dragging = true;
                 dragOffset = e.mousePosition - new Vector2(rect.x, rect.y);

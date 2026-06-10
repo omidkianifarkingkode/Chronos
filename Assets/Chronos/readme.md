@@ -45,7 +45,9 @@ The asset contains:
 | --- | --- |
 | Logging | `LogEnabled`, `LogLevel` |
 | Modules | `SchedulerEnable`, `TickingEnable` |
-| Clock | `GameClockOptions` (overlay, skew/delta thresholds, cheat), `ServerTimeSyncOptions` (URL, sync triggers) |
+| Clock | `GameClockOptions` (overlay, skew/delta thresholds, cheat), `ServerTimeSyncOptions` (URL, sync triggers, request timeout, SSL bypass) |
+| Clock overlay | `ClockOverlayOptions` (display rect, draggable, font size, time format) |
+| Cheat overlay | `ClockCheatOverlayOptions` (show/hide rects, start expanded, font sizes, button heights) |
 | Scheduling | `ActionSchedulerOptions` (pool capacity, exception handling) |
 | Ticking | `TickingOptions` (ticks per second, max ticks per frame) |
 

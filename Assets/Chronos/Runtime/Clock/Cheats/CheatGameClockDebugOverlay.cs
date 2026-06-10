@@ -1,4 +1,5 @@
-﻿using Kingkode.Chronos.Clock.Infrasturctures;
+﻿using Kingkode.Chronos.Clock.Configurations;
+using Kingkode.Chronos.Clock.Infrasturctures;
 using Kingkode.Chronos.Clock.Persistences;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
@@ -7,9 +8,13 @@ namespace Kingkode.Chronos.Clock.Cheats
 {
     public class CheatGameClockDebugOverlay : MonoBehaviour
     {
-        [SerializeField] Rect showRect = new(50, 160, 1350, 620);
-        [SerializeField] Rect hideRect = new(0, 165, 350, 500);
-        [SerializeField] bool showClock = true;
+        // Configured via ChronosSettings (this component is added at runtime, so the
+        // settings asset is the only way consumers can adjust it).
+        private ClockCheatOverlayOptions _options;
+
+        private Rect showRect;
+        private Rect hideRect;
+        private bool showClock;
 
         private GameClockCheat _cheat;
         private IClock _clock;
@@ -25,9 +30,12 @@ namespace Kingkode.Chronos.Clock.Cheats
 
         private void Awake()
         {
-            var bootstrapper = FindFirstObjectByType<ChronosBootstrapper>();
+            _options = ChronosBootstrapper.Instance.Settings.ClockCheatOverlay;
+            showRect = _options.ShowRect;
+            hideRect = _options.HideRect;
+            showClock = _options.StartExpanded;
 
-            bootstrapper.OnServicesInitialized.AddListener((services) =>
+            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
             {
                 _cheat = services.Resolve<GameClockCheat>();
 
@@ -58,12 +66,12 @@ namespace Kingkode.Chronos.Clock.Cheats
             showClock = true;
 
             GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
-            buttonStyle.fontSize = 26;
+            buttonStyle.fontSize = _options.ButtonFontSize;
 
             // Background semi-transparent box
             GUILayout.BeginArea(showRect);
             GUI.Box(new Rect(0, 0, showRect.width, showRect.height), "");
-            if (GUILayout.Button("<<", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("<<", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 Hide();
             }
@@ -83,15 +91,15 @@ namespace Kingkode.Chronos.Clock.Cheats
             
 
 
-            if (GUILayout.Button("+1 M", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("+1 M", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatServerDateTime(1);
             }
-            if (GUILayout.Button("-1 M", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("-1 M", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatServerDateTime(-1);
             }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.ResetServerDateTime();
             }
@@ -100,15 +108,15 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.Label($"{_dateTimeProvider.UtcNow:T} ({_dateTimeProvider.Now:T}) - Local Date Time", _style);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatLocalDateTime(1);
             }
-            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatLocalDateTime(-1);
             }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.ResetLocalDateTime();
             }
@@ -119,15 +127,15 @@ namespace Kingkode.Chronos.Clock.Cheats
             GUILayout.Label($"Real Ticks: {_realSystemTickProvider.GetTimestamp() / 10000000L}", _style);
             GUILayout.Label($"Fake Ticks: {_systemTickProvider.GetTimestamp() / 10000000L}", _style);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("+1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatSystemTick(10000L * 1000 * 60 * 60);
             }
-            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("-1 H", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.CheatSystemTick(-10000L * 1000 * 60 * 60);
             }
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.ResetSystemTick();
             }
@@ -141,15 +149,15 @@ namespace Kingkode.Chronos.Clock.Cheats
             GUILayout.Label($"Tamper Detected: {suspiciousText}", _style);
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Sync", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Sync", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.SynceWithServer();
             }
-            if (GUILayout.Button("Save", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Save", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _clock.CheckClockJumping();
             }
-            if (GUILayout.Button("Clear Cache", buttonStyle, GUILayout.Height(50)))
+            if (GUILayout.Button("Clear Cache", buttonStyle, GUILayout.Height(_options.ButtonHeight)))
             {
                 _cheat.ClearCache();
             }
@@ -165,7 +173,7 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             GUILayout.BeginArea(hideRect);
 
-            if (GUILayout.Button(">>", GUILayout.Height(75)))
+            if (GUILayout.Button(">>", GUILayout.Height(_options.ExpandButtonHeight)))
             {
                 Show();
             }
@@ -180,7 +188,7 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             _style = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 32,
+                fontSize = _options.LabelFontSize,
                 normal = { textColor = Color.yellow },
                 padding = new RectOffset(10, 10, 8, 8),
                 alignment = TextAnchor.UpperLeft
