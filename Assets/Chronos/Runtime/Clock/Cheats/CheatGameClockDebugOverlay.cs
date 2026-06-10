@@ -58,11 +58,24 @@ namespace Kingkode.Chronos.Clock.Cheats
             });
         }
 
+        private const string BlockerId = "clock-cheat-overlay";
+
+        private void OnDisable()
+        {
+            ChronosOverlayRaycastBlocker.RemoveRegion(BlockerId);
+        }
+
         private void OnGUI()
         {
             if (_clock == null) return;
 
             CreateStyles();
+
+            // Mirror the panel into the EventSystem so clicks on it don't fall
+            // through to gameplay input. Collapsed, only the expand button blocks.
+            ChronosOverlayRaycastBlocker.SetRegion(BlockerId, showClock
+                ? showRect
+                : new Rect(hideRect.x, hideRect.y, hideRect.width, _options.ExpandButtonHeight + 8));
 
             if (showClock) Show();
             else Hide();
@@ -117,6 +130,12 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             // ── Integrity ─────────────────────────────────────────────
             BeginCard("INTEGRITY");
+
+            // The tamper event only fires when detected; once the clock recovers
+            // (e.g. after a cheat reset re-syncs the baseline) drop the stale value.
+            if (!_clock.SuspectedTampering)
+                _tamper = null;
+
             string trustHex = ChronosGuiTheme.ToHex(ChronosGuiTheme.TrustColor(_clock.TrustedLevel));
             string tamperText = _tamper == null
                 ? $"<color=#{ChronosGuiTheme.ToHex(ChronosGuiTheme.StrongColor)}>No Tamper</color>"

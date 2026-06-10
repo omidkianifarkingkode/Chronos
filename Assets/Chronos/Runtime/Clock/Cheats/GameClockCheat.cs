@@ -79,6 +79,8 @@ namespace Kingkode.Chronos.Clock.Cheats
             serverDateTimeProvider.Reset();
 
             storage.ServerDateTime = null;
+
+            RestoreClockTrust();
         }
 
         public void CheatLocalDateTime(int h)
@@ -96,6 +98,8 @@ namespace Kingkode.Chronos.Clock.Cheats
             fakeLocalDateTimeProvider.Reset();
 
             storage.LocalDateTime = null;
+
+            RestoreClockTrust();
         }
 
         public void CheatSystemTick(long t)
@@ -113,6 +117,19 @@ namespace Kingkode.Chronos.Clock.Cheats
             fakeSystemTickProvider.Reset();
 
             storage.SystemTick = null;
+
+            RestoreClockTrust();
+        }
+
+        /// <summary>
+        /// After a cheat reset the clock would stay flagged (Weak trust / tamper) forever,
+        /// because its trusted baseline still contains the cheated values and every
+        /// recompute re-detects a regression. Re-sync the baseline from the now-clean
+        /// providers so the trust level reflects reality again.
+        /// </summary>
+        private void RestoreClockTrust()
+        {
+            clock?.SyncWithServer(serverDateTimeProvider.UtcNow.ToUnixTimeMilliseconds());
         }
     }
 }

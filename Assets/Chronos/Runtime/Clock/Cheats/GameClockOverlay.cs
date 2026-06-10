@@ -41,6 +41,13 @@ namespace Kingkode.Chronos.Clock.Cheats
             _timeStyle = ChronosGuiTheme.MakeLabel(_options.FontSize, ChronosGuiTheme.TextPrimary, bold: true);
         }
 
+        private const string BlockerId = "clock-overlay";
+
+        private void OnDisable()
+        {
+            ChronosOverlayRaycastBlocker.RemoveRegion(BlockerId);
+        }
+
         private void OnGUI()
         {
             if (clock == null) return;
@@ -49,6 +56,10 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             HandleDragging(ref displayRect);
             DrawClockPanel(displayRect, clock.Now.ToString(_options.TimeFormat));
+
+            // Mirror the panel into the EventSystem so clicks on it don't fall
+            // through to gameplay input.
+            ChronosOverlayRaycastBlocker.SetRegion(BlockerId, displayRect);
         }
 
         private void DrawClockPanel(Rect rect, string text)

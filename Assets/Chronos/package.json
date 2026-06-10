@@ -10,5 +10,6 @@
   "description": "Provides task scheduling and time functionalities.",
   "keywords": [],
   "dependencies": {
+    "com.unity.ugui": "1.0.0"
   }
 }
