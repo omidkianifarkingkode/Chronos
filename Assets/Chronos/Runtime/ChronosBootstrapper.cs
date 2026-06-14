@@ -26,10 +26,6 @@ namespace Kingkode.Chronos
         }
         private static ChronosBootstrapper _instance;
 
-        [Header("Configuration")]
-        [Tooltip("Optional explicit settings asset. When empty, Chronos loads '" + ChronosSettings.ResourcesFileName + "' from any Resources folder and falls back to the package defaults.")]
-        [SerializeField] private ChronosSettings _settings;
-
         [field: SerializeField] public UnityEvent<IServiceRegister> OnRegisterServices { get; private set; }
         [field: SerializeField] public UnityEvent<IServiceResolver> OnServicesInitialized { get; private set; }
 
@@ -37,20 +33,20 @@ namespace Kingkode.Chronos
         /// Resolved configuration: explicit asset > "ChronosSettings" in Resources > package defaults.
         /// Never null.
         /// </summary>
-        public ChronosSettings Settings
+        internal ChronosSettings settings
         {
             get
             {
-                if (_resolvedSettings == null)
-                    _resolvedSettings = ChronosSettings.Resolve(_settings);
+                if (_settings == null)
+                    _settings = ChronosSettings.Resolve();
 
-                return _resolvedSettings;
+                return _settings;
             }
         }
-        private ChronosSettings _resolvedSettings;
+        private ChronosSettings _settings;
 
         private ServiceContainer _container;
-        private ILogger _chronosLogger;
+        private ILogger _logger;
 
         private void Awake()
         {
@@ -63,8 +59,14 @@ namespace Kingkode.Chronos
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
-            ChronosModuleFactory.EnsureHierarchy(this);
-            InitializeModules();
+            _logger = new Logger(Debug.unityLogger.logHandler)
+            {
+                logEnabled = settings.LogEnabled,
+                filterLogType = settings.LogLevel
+            };
+
+            ChronosModuleFactory.Logger = _logger;
+            ChronosModuleFactory.EnsureHierarchy(this, settings);
         }
 
         private void Start()
@@ -73,54 +75,35 @@ namespace Kingkode.Chronos
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            // Re-resolve when the explicit settings reference changes in the inspector.
-            _resolvedSettings = null;
+        //private void OnValidate()
+        //{
+        //    _settings = null;
 
-            if (Application.isPlaying)
-            {
-                if (_chronosLogger != null)
-                {
-                    _chronosLogger.logEnabled = Settings.LogEnabled;
-                    _chronosLogger.filterLogType = Settings.LogLevel;
-                }
+        //    if (Application.isPlaying)
+        //    {
+        //        if (_logger != null)
+        //        {
+        //            _logger.logEnabled = settings.LogEnabled;
+        //            _logger.filterLogType = settings.LogLevel;
+        //        }
 
-                return;
-            }
+        //        return;
+        //    }
 
-            ChronosModuleFactory.EnsureHierarchy(this);
-            InitializeModules();
-        }
+        //    ChronosModuleFactory.EnsureHierarchy(this, settings);
+        //}
 #endif
-
-        private void InitializeModules()
-        {
-            var scheduler = GetComponentInChildren<SchedulingBootstapper>(true);
-            if (scheduler != null)
-                scheduler.gameObject.SetActive(Settings.SchedulerEnable);
-
-            var ticking = GetComponentInChildren<TickingBootstrapper>(true);
-            if (ticking != null)
-                ticking.gameObject.SetActive(Settings.TickingEnable);
-        }
 
         private void BuildContainer()
         {
-            _chronosLogger = new Logger(Debug.unityLogger.logHandler)
-            {
-                logEnabled = Settings.LogEnabled,
-                filterLogType = Settings.LogLevel
-            };
-
             // The new Microsoft-style Builder pattern
-            _container = ServiceContainer.Create("Chronos DI", _chronosLogger)
+            _container = ServiceContainer.Create("Chronos DI", _logger)
 
                 // 1. REGISTRATION PHASE
                 .ConfigureServices(services =>
                 {
-                    services.Register<ILogger>(_chronosLogger);
-                    services.Register(Settings);
+                    services.Register(_logger);
+                    services.Register(settings);
 
                     // Allow external modules to register their dependencies
                     OnRegisterServices?.Invoke(services);
@@ -151,8 +134,8 @@ namespace Kingkode.Chronos
         {
             if (_instance == this)
             {
-                _chronosLogger = null;
                 _container?.Dispose();
+                _logger = null;
                 _instance = null;
             }
         }

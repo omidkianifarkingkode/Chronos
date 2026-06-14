@@ -5,7 +5,7 @@ namespace Kingkode.Chronos.Editor
 {
     public static class ChronosModuleMenu
     {
-        private const string MenuPath = "Window/Chrono/Setup Chronos";
+        private const string MenuPath = "Window/Chrono/Setup Chronos In Scene";
         private const string SettingsMenuPath = "Window/Chrono/Create Settings Asset";
 
         [MenuItem(MenuPath)]

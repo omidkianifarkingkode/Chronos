@@ -23,6 +23,9 @@ namespace Kingkode.Chronos.Clock.Configurations
         [field: SerializeField] public int ButtonFontSize { get; set; } = 26;
         [field: SerializeField] public int ButtonHeight { get; set; } = 50;
 
+        [field: SerializeField] public float DragHandleWidth { get; set; } = 60f;
+
+
         [Tooltip("Height of the expand (>>) button shown while the panel is collapsed.")]
         [field: SerializeField] public int ExpandButtonHeight { get; set; } = 75;
     }

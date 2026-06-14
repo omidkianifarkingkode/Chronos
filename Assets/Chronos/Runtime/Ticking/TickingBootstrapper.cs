@@ -12,18 +12,19 @@ namespace Kingkode.Chronos.Ticking
 
         private void Awake()
         {
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
             // Configuration comes from the ChronosSettings asset; nothing is serialized
             // on this component, so consumers configure the module without editing the package.
-            _options = ChronosBootstrapper.Instance.Settings.Ticking;
+            _options = chronos.settings.Ticking;
 
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener((services) =>
+            chronos.OnRegisterServices.AddListener((services) =>
             {
                 services.Register(_options);
                 services.Register<TickProvider>();
                 services.RegisterForward<ITickProvider, TickProvider>();
             });
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
+            chronos.OnServicesInitialized.AddListener((services) =>
             {
                 _tickSystem = services.Resolve<TickProvider>();
             });

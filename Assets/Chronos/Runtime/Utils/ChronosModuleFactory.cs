@@ -7,6 +7,8 @@ namespace Kingkode.Chronos
 {
     public static class ChronosModuleFactory
     {
+        public static ILogger Logger { get; internal set; }
+
         public static ChronosBootstrapper GetOrCreateChronosBootstrapper()
         {
             var bootstrapper = Object.FindFirstObjectByType<ChronosBootstrapper>();
@@ -16,21 +18,23 @@ namespace Kingkode.Chronos
                 bootstrapper = root.AddComponent<ChronosBootstrapper>();
             }
 
-            EnsureHierarchy(bootstrapper);
             return bootstrapper;
         }
 
-        public static void EnsureHierarchy(ChronosBootstrapper bootstrapper)
+        public static void EnsureHierarchy(ChronosBootstrapper bootstrapper, ChronosSettings settings)
         {
             if (bootstrapper == null)
                 return;
 
-            EnsureChild<ClockBootstrapper>(bootstrapper.transform, "Clock", true);
-            EnsureChild<SchedulingBootstapper>(bootstrapper.transform, "Scheduler", true);
-            EnsureChild<TickingBootstrapper>(bootstrapper.transform, "Ticking", false);
+            EnsureChild<ClockBootstrapper>(bootstrapper.transform, "Clock");
+
+            EnsureOptionalChild<SchedulingBootstrapper>(bootstrapper.transform, "Scheduler", settings.Scheduler.Enabled);
+
+            EnsureOptionalChild<TickingBootstrapper>(bootstrapper.transform, "Ticking", settings.Ticking.Enabled);
         }
 
-        private static T EnsureChild<T>(Transform parent, string name, bool isEnabled) where T : Component
+
+        private static T EnsureChild<T>(Transform parent, string name) where T : Component
         {
             var child = parent.Find(name);
             GameObject childObject;
@@ -46,12 +50,42 @@ namespace Kingkode.Chronos
             }
 
             var component = childObject.GetComponent<T>();
+
             if (component == null)
                 component = childObject.AddComponent<T>();
 
-            childObject.SetActive(isEnabled);
-
             return component;
+        }
+
+        private static void EnsureOptionalChild<T>(Transform parent, string name, bool enabled) where T : Component
+        {
+            var child = parent.Find(name);
+
+            if (enabled)
+            {
+                if (child == null)
+                {
+                    var go = new GameObject(name);
+                    go.transform.SetParent(parent, false);
+                    go.AddComponent<T>();
+                }
+                else if (child.GetComponent<T>() == null)
+                {
+                    child.gameObject.AddComponent<T>();
+                }
+            }
+            else
+            {
+                if (child == null)
+                    return;
+
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    Object.DestroyImmediate(child.gameObject);
+                else
+#endif
+                    Object.Destroy(child.gameObject);
+            }
         }
     }
 }

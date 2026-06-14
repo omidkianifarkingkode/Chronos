@@ -2,7 +2,7 @@ using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
-namespace Kingkode.Chronos.Clock.Cheats
+namespace Kingkode.Chronos.Clock.Overlay
 {
     public class GameClockOverlay : MonoBehaviour
     {
@@ -19,16 +19,21 @@ namespace Kingkode.Chronos.Clock.Cheats
 
         private GUIStyle _panelStyle;
         private GUIStyle _timeStyle;
+
+        private int _lastScreenWidth;
+        private int _lastScreenHeight;
+
         private IClock clock;
 
         private void Awake()
         {
-            _options = ChronosBootstrapper.Instance.Settings.ClockOverlay;
-            displayRect = _options.DisplayRect;
-
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
+            chronos.OnServicesInitialized.AddListener((services) =>
             {
                 clock = services.Resolve<IClock>();
+                _options = services.Resolve<ChronosSettings>().ClockOverlay;
+
+                displayRect = _options.DisplayRect.ToScreenRect();
             });
         }
 
@@ -51,6 +56,14 @@ namespace Kingkode.Chronos.Clock.Cheats
         private void OnGUI()
         {
             if (clock == null) return;
+
+            if (_lastScreenWidth != Screen.width || _lastScreenHeight != Screen.height)
+            {
+                _lastScreenWidth = Screen.width;
+                _lastScreenHeight = Screen.height;
+
+                displayRect = _options.DisplayRect.ToScreenRect();
+            }
 
             CreateStyles();
 
@@ -86,23 +99,32 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             Event e = Event.current;
 
-            // Detect start drag
-            if (_options.Draggable && e.type == EventType.MouseDown && rect.Contains(e.mousePosition))
+            if (_options.Draggable &&
+                e.type == EventType.MouseDown &&
+                rect.Contains(e.mousePosition))
             {
                 dragging = true;
                 dragOffset = e.mousePosition - new Vector2(rect.x, rect.y);
                 e.Use();
             }
 
-            // Drag move
             if (dragging && e.type == EventType.MouseDrag)
             {
-                rect.x = Mathf.Max(0, e.mousePosition.x - dragOffset.x);
-                rect.y = Mathf.Max(0, e.mousePosition.y - dragOffset.y);
+                rect.x = Mathf.Clamp(
+                    e.mousePosition.x - dragOffset.x,
+                    0,
+                    Screen.width - rect.width);
+
+                rect.y = Mathf.Clamp(
+                    e.mousePosition.y - dragOffset.y,
+                    0,
+                    Screen.height - rect.height);
+
+                _options.DisplayRect.FromScreenRect(displayRect);
+
                 e.Use();
             }
 
-            // Stop drag
             if (e.type == EventType.MouseUp)
                 dragging = false;
         }

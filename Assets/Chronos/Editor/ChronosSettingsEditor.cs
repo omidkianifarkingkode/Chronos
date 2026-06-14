@@ -12,8 +12,6 @@ namespace Kingkode.Chronos.Editor
     {
         private SerializedProperty _logEnabled;
         private SerializedProperty _logLevel;
-        private SerializedProperty _schedulerEnable;
-        private SerializedProperty _tickingEnable;
         private SerializedProperty _clock;
         private SerializedProperty _serverTimeSync;
         private SerializedProperty _clockOverlay;
@@ -37,12 +35,16 @@ namespace Kingkode.Chronos.Editor
         private GUIStyle _sectionTitleStyle;
         private GUIStyle _pillStyle;
 
+        private SerializedProperty SchedulerEnabled
+            => FindRelative(_scheduler, "Enabled");
+
+        private SerializedProperty TickingEnabled
+            => FindRelative(_ticking, "Enabled");
+
         private void OnEnable()
         {
             _logEnabled = Find("LogEnabled");
             _logLevel = Find("LogLevel");
-            _schedulerEnable = Find("SchedulerEnable");
-            _tickingEnable = Find("TickingEnable");
             _clock = Find("Clock");
             _serverTimeSync = Find("ServerTimeSync");
             _clockOverlay = Find("ClockOverlay");
@@ -72,16 +74,20 @@ namespace Kingkode.Chronos.Editor
                     EditorGUILayout.PropertyField(_logLevel);
             });
 
-            DrawSection("Modules", AccentModules, () =>
-            {
-                DrawModuleRow(_schedulerEnable, "Scheduler", "Delayed and repeated actions via Chronos.Scheduler.");
-                DrawModuleRow(_tickingEnable, "Ticking", "Fixed-rate gameplay ticks via Chronos.TickProvider.");
-            });
-
-            DrawSection("Clock", AccentClock, () =>
+            DrawSection("Clock Options", AccentClock, () =>
             {
                 EditorGUILayout.PropertyField(_clock);
                 EditorGUILayout.PropertyField(_serverTimeSync);
+
+                var cheatEnable = FindRelative(_clock, "CheatEnable");
+                if (cheatEnable != null && cheatEnable.boolValue)
+                    EditorGUILayout.HelpBox("Clock cheat overlay is enabled — remember to turn it off for release builds.", MessageType.Warning);
+
+                var serverUrl = FindRelative(_serverTimeSync, "ServerUrl");
+                var syncOnStart = FindRelative(_serverTimeSync, "SyncOnAppStart");
+                if (serverUrl != null && string.IsNullOrWhiteSpace(serverUrl.stringValue)
+                    && syncOnStart != null && syncOnStart.boolValue)
+                    EditorGUILayout.HelpBox("Server sync is enabled but the server URL is empty.", MessageType.Error);
             });
 
             DrawSection("Overlays", AccentOverlay, () =>
@@ -92,24 +98,33 @@ namespace Kingkode.Chronos.Editor
 
             DrawSection("Scheduling", AccentScheduling, () =>
             {
-                using (new EditorGUI.DisabledScope(!_schedulerEnable.boolValue))
-                    EditorGUILayout.PropertyField(_scheduler);
+                DrawModuleRow(SchedulerEnabled, "Scheduler", "Delayed and repeated actions via Chronos.Scheduler.");
 
-                if (!_schedulerEnable.boolValue)
+                var enabledProp = SchedulerEnabled;
+                EditorGUILayout.PropertyField(_scheduler);
+
+                if (!enabledProp.boolValue)
                     EditorGUILayout.LabelField("Scheduler module is disabled.", EditorStyles.centeredGreyMiniLabel);
             });
 
             DrawSection("Ticking", AccentTicking, () =>
             {
-                using (new EditorGUI.DisabledScope(!_tickingEnable.boolValue))
-                    EditorGUILayout.PropertyField(_ticking);
+                DrawModuleRow(TickingEnabled, "Ticking", "Fixed-rate gameplay ticks via Chronos.TickProvider.");
 
-                if (!_tickingEnable.boolValue)
+                var enabledProp = TickingEnabled;
+
+                EditorGUILayout.PropertyField(_ticking);
+
+                if (!enabledProp.boolValue)
                     EditorGUILayout.LabelField("Ticking module is disabled.", EditorStyles.centeredGreyMiniLabel);
+
+                var ticksPerSecond = FindRelative(_ticking, "TicksPerSecond");
+                var tickingEnabled = TickingEnabled;
+                if (tickingEnabled != null && tickingEnabled.boolValue && ticksPerSecond != null && ticksPerSecond.intValue <= 0)
+                    EditorGUILayout.HelpBox("Ticking is enabled but Ticks Per Second must be greater than 0.", MessageType.Error);
             });
 
             GUILayout.Space(4);
-            DrawWarnings();
             DrawFooter();
 
             serializedObject.ApplyModifiedProperties();
@@ -192,24 +207,7 @@ namespace Kingkode.Chronos.Editor
             GUILayout.Space(2);
         }
 
-        // ─── Validation & footer ──────────────────────────────────────
-
-        private void DrawWarnings()
-        {
-            var cheatEnable = FindRelative(_clock, "CheatEnable");
-            if (cheatEnable != null && cheatEnable.boolValue)
-                EditorGUILayout.HelpBox("Clock cheat overlay is enabled — remember to turn it off for release builds.", MessageType.Warning);
-
-            var serverUrl = FindRelative(_serverTimeSync, "ServerUrl");
-            var syncOnStart = FindRelative(_serverTimeSync, "SyncOnAppStart");
-            if (serverUrl != null && string.IsNullOrWhiteSpace(serverUrl.stringValue)
-                && syncOnStart != null && syncOnStart.boolValue)
-                EditorGUILayout.HelpBox("Server sync is enabled but the server URL is empty.", MessageType.Warning);
-
-            var ticksPerSecond = FindRelative(_ticking, "TicksPerSecond");
-            if (_tickingEnable.boolValue && ticksPerSecond != null && ticksPerSecond.intValue <= 0)
-                EditorGUILayout.HelpBox("Ticking is enabled but Ticks Per Second must be greater than 0.", MessageType.Error);
-        }
+        // ─── footer ──────────────────────────────────────
 
         private void DrawFooter()
         {

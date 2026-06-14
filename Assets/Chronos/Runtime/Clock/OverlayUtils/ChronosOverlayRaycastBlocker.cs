@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Kingkode.Chronos.Clock.Cheats
+namespace Kingkode.Chronos.Clock.Overlay
 {
     /// <summary>
     /// Keeps an invisible screen-space canvas with one raycast-target image per overlay

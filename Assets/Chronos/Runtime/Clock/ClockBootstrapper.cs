@@ -1,6 +1,7 @@
 ﻿using Kingkode.Chronos.Clock.Cheats;
 using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Infrasturctures;
+using Kingkode.Chronos.Clock.Overlay;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
@@ -18,13 +19,12 @@ namespace Kingkode.Chronos.Clock
 
         private void Awake()
         {
-            // All configuration comes from the ChronosSettings asset; nothing is serialized
-            // on this component, so consumers configure the module without editing the package.
-            var settings = ChronosBootstrapper.Instance.Settings;
-            _clockOptions = settings.Clock;
-            _serverTimeSyncOptions = settings.ServerTimeSync;
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
 
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener(services =>
+            _clockOptions = chronos.settings.Clock;
+            _serverTimeSyncOptions = chronos.settings.ServerTimeSync;
+
+            chronos.OnRegisterServices.AddListener(services =>
             {
                 services.Register(_clockOptions);
                 services.Register(_serverTimeSyncOptions);
@@ -38,12 +38,15 @@ namespace Kingkode.Chronos.Clock
                 services.Register<IClock, ChronosClock>();
             });
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener(services =>
+            chronos.OnServicesInitialized.AddListener(services =>
             {
                 _serverTimeSyncer = services.Resolve<IServerTimeSyncer>();
                 _clock = services.Resolve<IClock>();
-                _serverTimeSyncOptions = services.Resolve<ServerTimeSyncOptions>();
-                _clockOptions = services.Resolve<GameClockOptions>();
+
+                _isStarted = true;
+
+                if (_serverTimeSyncOptions.SyncOnAppStart)
+                    _serverTimeSyncer.Synce((unix) => _clock.SyncWithServer(unix));
             });
 
             if (_clockOptions.CheatEnable)
@@ -53,13 +56,13 @@ namespace Kingkode.Chronos.Clock
                 gameObject.AddComponent<GameClockOverlay>();
         }
 
-        private void Start()
-        {
-            _isStarted = true;
+        //private void Start()
+        //{
+        //    _isStarted = true;
 
-            if (_serverTimeSyncOptions.SyncOnAppStart)
-                _serverTimeSyncer.Synce((unix) => _clock.SyncWithServer(unix));
-        }
+        //    if (_serverTimeSyncOptions.SyncOnAppStart)
+        //        _serverTimeSyncer.Synce((unix) => _clock.SyncWithServer(unix));
+        //}
 
         private void OnApplicationPause(bool pause)
         {

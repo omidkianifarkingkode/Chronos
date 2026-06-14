@@ -1,10 +1,11 @@
+using Kingkode.Chronos.Clock.Cheats;
 using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Infrasturctures;
 using Kingkode.Chronos.Clock.Persistences;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
-namespace Kingkode.Chronos.Clock.Cheats
+namespace Kingkode.Chronos.Clock.Overlay
 {
     public class CheatGameClockDebugOverlay : MonoBehaviour
     {
@@ -35,14 +36,15 @@ namespace Kingkode.Chronos.Clock.Cheats
 
         private Tamper _tamper;
 
+        // Drag state
+        private bool _dragging;
+        private Vector2 _dragOffset;
+
         private void Awake()
         {
-            _options = ChronosBootstrapper.Instance.Settings.ClockCheatOverlay;
-            showRect = _options.ShowRect;
-            hideRect = _options.HideRect;
-            showClock = _options.StartExpanded;
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
+            chronos.OnServicesInitialized.AddListener((services) =>
             {
                 _cheat = services.Resolve<GameClockCheat>();
 
@@ -55,6 +57,11 @@ namespace Kingkode.Chronos.Clock.Cheats
                 _realSystemTickProvider = services.Resolve<DefaultSystemTickProvider>();
 
                 _clock.OnTamperDetected += (tamper) => _tamper = tamper;
+
+                _options = services.Resolve<ChronosSettings>().ClockCheatOverlay;
+                showRect = _options.ShowRect;
+                hideRect = _options.HideRect;
+                showClock = _options.StartExpanded;
             });
         }
 
@@ -75,7 +82,7 @@ namespace Kingkode.Chronos.Clock.Cheats
             // through to gameplay input. Collapsed, only the expand button blocks.
             ChronosOverlayRaycastBlocker.SetRegion(BlockerId, showClock
                 ? showRect
-                : new Rect(hideRect.x, hideRect.y, hideRect.width, _options.ExpandButtonHeight + 8));
+                : new Rect(hideRect.x, hideRect.y, hideRect.width, _options.ExpandButtonHeight));
 
             if (showClock) Show();
             else Hide();
@@ -155,14 +162,30 @@ namespace Kingkode.Chronos.Clock.Cheats
         {
             showClock = false;
 
-            GUILayout.BeginArea(hideRect);
+            float height = _options.ExpandButtonHeight;
 
-            if (GUILayout.Button("» Time Cheats", _accentButtonStyle, GUILayout.Height(_options.ExpandButtonHeight)))
+            Rect handleRect = new Rect(
+                hideRect.x,
+                hideRect.y,
+                _options.DragHandleWidth,
+                height);
+
+            HandleDragging(handleRect, ref hideRect);
+
+            // Draw handle
+            GUI.Box(handleRect, "≡");
+
+            // Draw button next to handle
+            Rect buttonRect = new Rect(
+                hideRect.x + _options.DragHandleWidth + 4,
+                hideRect.y,
+                hideRect.width - _options.DragHandleWidth - 4,
+                height);
+
+            if (GUI.Button(buttonRect, "» Time Cheats", _accentButtonStyle))
             {
-                Show();
+                showClock = true;
             }
-
-            GUILayout.EndArea();
         }
 
         // ─── Layout helpers ───────────────────────────────────────────
@@ -208,6 +231,31 @@ namespace Kingkode.Chronos.Clock.Cheats
             _labelStyle = ChronosGuiTheme.MakeLabel(_options.LabelFontSize, ChronosGuiTheme.TextPrimary);
             _buttonStyle = ChronosGuiTheme.MakeButton(_options.ButtonFontSize);
             _accentButtonStyle = ChronosGuiTheme.MakeAccentButton(_options.ButtonFontSize);
+        }
+
+        private void HandleDragging(Rect dragRect, ref Rect targetRect)
+        {
+            Event e = Event.current;
+
+            if (e.type == EventType.MouseDown &&
+                dragRect.Contains(e.mousePosition))
+            {
+                _dragging = true;
+                _dragOffset = e.mousePosition - new Vector2(targetRect.x, targetRect.y);
+                e.Use();
+            }
+
+            if (_dragging && e.type == EventType.MouseDrag)
+            {
+                targetRect.x = Mathf.Max(0, e.mousePosition.x - _dragOffset.x);
+                targetRect.y = Mathf.Max(0, e.mousePosition.y - _dragOffset.y);
+                e.Use();
+            }
+
+            if (e.type == EventType.MouseUp)
+            {
+                _dragging = false;
+            }
         }
     }
 }

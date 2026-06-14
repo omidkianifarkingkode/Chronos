@@ -27,10 +27,6 @@ namespace Kingkode.Chronos
         [field: SerializeField] public bool LogEnabled { get; set; } = true;
         [field: SerializeField] public LogType LogLevel { get; set; } = LogType.Log;
 
-        [field: Header("Modules")]
-        [field: SerializeField] public bool SchedulerEnable { get; set; } = true;
-        [field: SerializeField] public bool TickingEnable { get; set; } = false;
-
         [field: Header("Clock")]
         [field: SerializeField] public GameClockOptions Clock { get; set; } = new GameClockOptions();
         [field: SerializeField] public ServerTimeSyncOptions ServerTimeSync { get; set; } = new ServerTimeSyncOptions();
@@ -47,7 +43,7 @@ namespace Kingkode.Chronos
         /// Returns the settings to use. Never returns null:
         /// explicit asset > "ChronosSettings" in Resources > package defaults.
         /// </summary>
-        public static ChronosSettings Resolve(ChronosSettings explicitSettings = null)
+        internal static ChronosSettings Resolve(ChronosSettings explicitSettings = null)
         {
             if (explicitSettings != null)
                 return explicitSettings;

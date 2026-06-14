@@ -1,5 +1,6 @@
 ﻿using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Infrasturctures;
+using Kingkode.Chronos.Clock.Overlay;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
@@ -27,7 +28,9 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             gameObject.AddComponent<CheatGameClockDebugOverlay>();
 
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener((services) =>
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
+
+            chronos.OnRegisterServices.AddListener((services) =>
             {
                 services.Register<IDateTimeProvider>(fakeLocalDateTimeProvider);
                 services.Register<ISystemTickProvider>(fakeSystemTickProvider);
@@ -43,7 +46,7 @@ namespace Kingkode.Chronos.Clock.Cheats
                 services.Register(realSystemTickProvider);
             });
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
+            chronos.OnServicesInitialized.AddListener((services) =>
             {
                 timeSnapshotStorage = services.Resolve<ITimeSnapshotStorage>();
                 clock = services.Resolve<IClock>();
@@ -79,8 +82,6 @@ namespace Kingkode.Chronos.Clock.Cheats
             serverDateTimeProvider.Reset();
 
             storage.ServerDateTime = null;
-
-            RestoreClockTrust();
         }
 
         public void CheatLocalDateTime(int h)
@@ -98,8 +99,6 @@ namespace Kingkode.Chronos.Clock.Cheats
             fakeLocalDateTimeProvider.Reset();
 
             storage.LocalDateTime = null;
-
-            RestoreClockTrust();
         }
 
         public void CheatSystemTick(long t)
@@ -117,19 +116,6 @@ namespace Kingkode.Chronos.Clock.Cheats
             fakeSystemTickProvider.Reset();
 
             storage.SystemTick = null;
-
-            RestoreClockTrust();
-        }
-
-        /// <summary>
-        /// After a cheat reset the clock would stay flagged (Weak trust / tamper) forever,
-        /// because its trusted baseline still contains the cheated values and every
-        /// recompute re-detects a regression. Re-sync the baseline from the now-clean
-        /// providers so the trust level reflects reality again.
-        /// </summary>
-        private void RestoreClockTrust()
-        {
-            clock?.SyncWithServer(serverDateTimeProvider.UtcNow.ToUnixTimeMilliseconds());
         }
     }
 }

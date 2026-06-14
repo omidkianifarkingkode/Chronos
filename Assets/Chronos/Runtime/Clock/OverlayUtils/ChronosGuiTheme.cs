@@ -2,7 +2,7 @@ using Kingkode.Chronos.Clock.Persistences;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Kingkode.Chronos.Clock.Cheats
+namespace Kingkode.Chronos.Clock.Overlay
 {
     /// <summary>
     /// Shared look for the runtime debug overlays: dark rounded panels, accent buttons and

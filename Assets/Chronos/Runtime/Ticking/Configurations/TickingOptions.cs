@@ -6,6 +6,8 @@ namespace Kingkode.Chronos.Ticking.Configurations
     [Serializable]
     public class TickingOptions 
     {
+        [field: SerializeField] public bool Enabled { get; set; } = false;
+
         [field: SerializeField] public int TicksPerSecond { get; set; } = 60;
 
         /// <summary>
