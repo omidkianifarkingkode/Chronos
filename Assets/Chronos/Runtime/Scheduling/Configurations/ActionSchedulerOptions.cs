@@ -10,6 +10,7 @@
     [Serializable]
     public class ActionSchedulerOptions
     {
+        [field: SerializeField] public bool Enabled { get; set; } = true;
         /// <summary>
         /// How many nodes to pre-allocate on startup to avoid initial garbage generation.
         /// Default is 64.

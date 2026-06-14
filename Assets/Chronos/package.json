@@ -5,10 +5,11 @@
     "name": "kingkode",
     "url": "https://github.com/omidkianifarkingkode"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "unity": "2022.3",
   "description": "Provides task scheduling and time functionalities.",
   "keywords": [],
   "dependencies": {
+    "com.unity.ugui": "1.0.0"
   }
 }

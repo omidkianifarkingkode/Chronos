@@ -2,6 +2,7 @@
     "name": "com.kingkode.chronos",
     "rootNamespace": "",
     "references": [
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
         "GUID:8a3101a814c552f4c8054fee3578bf1e"
     ],
     "includePlatforms": [],

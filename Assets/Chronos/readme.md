@@ -24,6 +24,34 @@ After installation, create the required bootstrapper hierarchy from:
 
 This menu item creates (or finds) the Chronos bootstrapper and wires available modules so `Chronos.Clock`, `Chronos.Scheduler`, and `Chronos.TickProvider` are initialized at runtime.
 
+## Configuration (ChronosSettings asset)
+
+All Chronos data lives in a single `ChronosSettings` ScriptableObject owned by **your project**, never by the package. You configure Chronos without editing package source, scenes, or prefabs.
+
+Create the asset from:
+
+- **Window → Chrono → Create Settings Asset** (creates `Assets/Resources/ChronosSettings.asset`), or
+- **Assets → Create → Chronos → Settings** (place it at the root of any `Resources` folder, keep the name `ChronosSettings`).
+
+At runtime the bootstrapper resolves settings in this order:
+
+1. The asset explicitly assigned to the `ChronosBootstrapper` component (optional override, useful for tests or per-build variants).
+2. `Resources/ChronosSettings` anywhere in the project.
+3. Built-in package defaults — Chronos works out of the box with no asset at all.
+
+The asset contains:
+
+| Section | Data |
+| --- | --- |
+| Logging | `LogEnabled`, `LogLevel` |
+| Modules | `SchedulerEnable`, `TickingEnable` |
+| Clock | `GameClockOptions` (overlay, skew/delta thresholds, cheat), `ServerTimeSyncOptions` (URL, sync triggers, request timeout, SSL bypass) |
+| Clock overlay | `ClockOverlayOptions` (display rect, draggable, font size, time format) |
+| Cheat overlay | `ClockCheatOverlayOptions` (show/hide rects, start expanded, font sizes, button heights) |
+| Scheduling | `ActionSchedulerOptions` (pool capacity, exception handling) |
+| Ticking | `TickingOptions` (ticks per second, max ticks per frame) |
+
+The resolved `ChronosSettings` instance is also registered in the DI container, so any service can take it as a dependency.
 
 ## Samples
 

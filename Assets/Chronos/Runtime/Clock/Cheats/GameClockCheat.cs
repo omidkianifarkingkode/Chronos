@@ -1,5 +1,6 @@
 ﻿using Kingkode.Chronos.Clock.Configurations;
 using Kingkode.Chronos.Clock.Infrasturctures;
+using Kingkode.Chronos.Clock.Overlay;
 using Kingkode.Chronos.Clock.Services;
 using UnityEngine;
 
@@ -27,7 +28,9 @@ namespace Kingkode.Chronos.Clock.Cheats
 
             gameObject.AddComponent<CheatGameClockDebugOverlay>();
 
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener((services) =>
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
+
+            chronos.OnRegisterServices.AddListener((services) =>
             {
                 services.Register<IDateTimeProvider>(fakeLocalDateTimeProvider);
                 services.Register<ISystemTickProvider>(fakeSystemTickProvider);
@@ -43,7 +46,7 @@ namespace Kingkode.Chronos.Clock.Cheats
                 services.Register(realSystemTickProvider);
             });
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener((services) =>
+            chronos.OnServicesInitialized.AddListener((services) =>
             {
                 timeSnapshotStorage = services.Resolve<ITimeSnapshotStorage>();
                 clock = services.Resolve<IClock>();

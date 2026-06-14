@@ -4,23 +4,27 @@ using UnityEngine;
 
 namespace Kingkode.Chronos.Scheduling
 {
-    public class SchedulingBootstapper : MonoBehaviour
+    public class SchedulingBootstrapper : MonoBehaviour
     {
-        [SerializeField] ActionSchedulerOptions _options;
+        private ActionSchedulerOptions _options;
 
         private ActionScheduler _scheduler;
         private IClock _clock;
 
         private void Awake()
         {
-            ChronosBootstrapper.Instance.OnRegisterServices.AddListener(services =>
+            var chronos = FindAnyObjectByType<ChronosBootstrapper>();
+
+            _options = chronos.settings.Scheduler;
+
+            chronos.OnRegisterServices.AddListener(services =>
             {
                 services.Register(_options);
                 services.Register<ActionScheduler>();
                 services.RegisterForward<IActionScheduler, ActionScheduler>();
             });
 
-            ChronosBootstrapper.Instance.OnServicesInitialized.AddListener(services =>
+            chronos.OnServicesInitialized.AddListener(services =>
             {
                 _clock = services.Resolve<IClock>();
                 _scheduler = services.Resolve<ActionScheduler>();
