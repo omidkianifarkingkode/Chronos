@@ -78,14 +78,45 @@ namespace Kingkode.Chronos.Clock.Overlay
 
             CreateStyles();
 
-            // Mirror the panel into the EventSystem so clicks on it don't fall
-            // through to gameplay input. Collapsed, only the expand button blocks.
-            ChronosOverlayRaycastBlocker.SetRegion(BlockerId, showClock
+            // Everything below is authored in ReferenceResolution space; scale the whole
+            // panel uniformly so it keeps its proportions on any screen. IMGUI reports
+            // Event.current.mousePosition in this scaled (design) space too, so the drag
+            // math elsewhere needs no changes.
+            float scale = GetScale();
+            Matrix4x4 previousMatrix = GUI.matrix;
+            GUIUtility.ScaleAroundPivot(new Vector2(scale, scale), Vector2.zero);
+
+            // The blocker canvas is unscaled (real screen pixels), so mirror the panel
+            // there using design-space rects multiplied back up by the scale. Collapsed,
+            // only the expand button blocks.
+            Rect designRegion = showClock
                 ? showRect
-                : new Rect(hideRect.x, hideRect.y, hideRect.width, _options.ExpandButtonHeight));
+                : new Rect(hideRect.x, hideRect.y, hideRect.width, _options.ExpandButtonHeight);
+            ChronosOverlayRaycastBlocker.SetRegion(BlockerId, Scale(designRegion, scale));
 
             if (showClock) Show();
             else Hide();
+
+            GUI.matrix = previousMatrix;
+        }
+
+        /// <summary>
+        /// Uniform scale that fits the ReferenceResolution-authored panel onto the current
+        /// screen. Uses the smaller axis ratio so the panel never overflows, and returns 1
+        /// (no scaling) when no valid reference resolution is set.
+        /// </summary>
+        private float GetScale()
+        {
+            Vector2 reference = _options.ReferenceResolution;
+            if (reference.x <= 0f || reference.y <= 0f)
+                return 1f;
+
+            return Mathf.Min(Screen.width / reference.x, Screen.height / reference.y);
+        }
+
+        private static Rect Scale(Rect rect, float scale)
+        {
+            return new Rect(rect.x * scale, rect.y * scale, rect.width * scale, rect.height * scale);
         }
 
         private void Show()

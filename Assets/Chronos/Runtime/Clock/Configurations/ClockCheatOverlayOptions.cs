@@ -10,10 +10,15 @@ namespace Kingkode.Chronos.Clock.Configurations
     [Serializable]
     public class ClockCheatOverlayOptions
     {
-        [Tooltip("Screen rect of the expanded cheat panel.")]
+        [Tooltip("Design resolution the rects and font sizes below are authored against. " +
+                 "At runtime the whole panel is scaled uniformly to fit the actual screen, " +
+                 "so it keeps these proportions at any resolution. Set X or Y to 0 to disable scaling.")]
+        [field: SerializeField] public Vector2 ReferenceResolution { get; set; } = new Vector2(1920f, 1080f);
+
+        [Tooltip("Screen rect of the expanded cheat panel (in ReferenceResolution space).")]
         [field: SerializeField] public Rect ShowRect { get; set; } = new Rect(50, 160, 1350, 620);
 
-        [Tooltip("Screen rect of the collapsed panel (only the expand button).")]
+        [Tooltip("Screen rect of the collapsed panel (only the expand button), in ReferenceResolution space.")]
         [field: SerializeField] public Rect HideRect { get; set; } = new Rect(0, 165, 350, 500);
 
         [Tooltip("Whether the panel starts expanded or collapsed.")]
